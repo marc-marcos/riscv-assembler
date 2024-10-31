@@ -3,6 +3,8 @@ use regex::Regex;
 use std::fs::File;
 use std::io::prelude::*;
 
+mod utils;
+
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Args {
@@ -21,6 +23,7 @@ fn main() {
     for line in contents.lines() {
         // Decode instruction
         let mut encoded_instruction: String = decode_instruction(line).unwrap();
+        println!("{}: {}", line, encoded_instruction);
     }
 }
 
@@ -61,9 +64,36 @@ fn decode_instruction(instruction: &str) -> Option<String> {
                 .map(|mat| mat.as_str().to_string())
                 .collect();
 
-            for i in result {
-                println!("Register: {:?}", i);
+            if result.len() != 3 {
+                panic!("Instruction format incorrect.");
             }
+
+            else {
+                let rd : u32 = utils::get_reg_number_from_name(&result[0]);
+                let rs1 : u32 = utils::get_reg_number_from_name(&result[1]);
+                let rs2 : u32 = utils::get_reg_number_from_name(&result[2]);
+
+                let opcode = 0b0110011;
+
+                let (funct7, funct3) = match mnemonic {
+                    "add" => (0x00, 0x00),
+                    "sub" => (0x20, 0x0),
+                    "xor" => (0x00, 0x4),
+                    "or" => (0x00, 0x6),
+                    "and" => (0x00, 0x7),
+                    "sll" => (0x00, 0x1),
+                    "srl" => (0x00, 0x5),
+                    "sra" => (0x20, 0x5),
+                    "slt" => (0x00, 0x2),
+                    "sltu" => (0x00, 0x3),
+                    &_ => (0, 0)
+                };
+
+                // This will have to be returned
+                let final_instruction = (funct7 << 25) | (rs2 << 20) | (rs1 << 15) | (funct3 << 12) | (rd << 7) | (opcode);
+                decoded_instruction = format!("{:08x}", final_instruction);
+            }
+
         }
         Some('I') => {
             let reg = Regex::new(r"t\d+|\d+").unwrap();
@@ -122,9 +152,6 @@ fn decode_instruction(instruction: &str) -> Option<String> {
             return None;
         }
     }
-
-    println!("Instruction format: {:?}", instruction_format);
-    println!("Rest: {:?}", rest);
 
     Some(decoded_instruction)
 }

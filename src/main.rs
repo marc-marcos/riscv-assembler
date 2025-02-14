@@ -143,9 +143,19 @@ fn decode_instruction(instruction: &str) -> Option<String> {
                 .map(|mat| mat.as_str().to_string())
                 .collect();
 
-            for i in result {
-                println!("Register: {:?}", i);
-            }
+            let imm = &result[1].parse::<u32>().unwrap();
+            let rs1 = dbg!(get_reg_number_from_name(&result[2]));
+            let rs2 = dbg!(get_reg_number_from_name(&result[0]));
+
+            let funct3 = match mnemonic {
+                "sb" => 0,
+                "sh" => 1,
+                "sw" => 2,
+                _ => 0
+            };
+
+            let final_instruction = (utils::extract_range_bits(*imm, 5, 11) << 25) | (rs2 << 20) | (rs1 << 15) | (funct3 << 12) | (utils::extract_range_bits(*imm, 0, 4) << 7) | 0b0100011;
+            decoded_instruction = format!("{:08x}", final_instruction);
         }
         Some('B') => {
             let reg = Regex::new(r"t\d+|\d+").unwrap();

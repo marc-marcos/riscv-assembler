@@ -144,8 +144,8 @@ fn decode_instruction(instruction: &str) -> Option<String> {
                 .collect();
 
             let imm = &result[1].parse::<u32>().unwrap();
-            let rs1 = dbg!(get_reg_number_from_name(&result[2]));
-            let rs2 = dbg!(get_reg_number_from_name(&result[0]));
+            let rs1 = get_reg_number_from_name(&result[2]);
+            let rs2 = get_reg_number_from_name(&result[0]);
 
             let funct3 = match mnemonic {
                 "sb" => 0,
@@ -164,10 +164,23 @@ fn decode_instruction(instruction: &str) -> Option<String> {
                 .find_iter(rest)
                 .map(|mat| mat.as_str().to_string())
                 .collect();
+        
+            let rs1 = get_reg_number_from_name(&result[0]); 
+            let rs2 = get_reg_number_from_name(&result[1]); 
+            let imm = &result[2].parse::<u32>().unwrap();
 
-            for i in result {
-                println!("Register: {:?}", i);
-            }
+            let funct3 = match mnemonic {
+                "beq" => 0,
+                "bne" => 1,
+                "blt" => 4,
+                "bge" => 5,
+                "bltu" => 6,
+                "bgeu" => 7,
+                _ => 0
+            };
+
+            let final_instruction = (utils::extract_single_bit(*imm, 12) << 30) | (utils::extract_range_bits(*imm, 5, 10) << 25) | (rs2 << 20) | (rs1 << 15) | (funct3 << 12) | (utils::extract_range_bits(*imm, 1, 4) << 8) | (utils::extract_single_bit(*imm, 11) << 7) | 0b1100011;
+            decoded_instruction = format!("{:08x}", final_instruction);
         }
         Some('U') => {
             let reg = Regex::new(r"t\d+|\d+").unwrap();
@@ -177,9 +190,33 @@ fn decode_instruction(instruction: &str) -> Option<String> {
                 .map(|mat| mat.as_str().to_string())
                 .collect();
 
-            for i in result {
-                println!("Register: {:?}", i);
-            }
+            let rd = &result[0].parse::<u32>().unwrap();
+            let imm = &result[1].parse::<u32>().unwrap();
+
+            let opcode = match mnemonic {
+                "lui" => 0b0110111,
+                "auipc" => 0b0010111,
+                _ => 0b0000000,
+            };
+
+            let final_instruction = utils::extract_range_bits(*imm, 12, 31) | rd << 7 | opcode;
+            decoded_instruction = format!("{:08x}", final_instruction);
+        }
+
+        Some('J') => {
+            let reg = Regex::new(r"t\d+|\d+").unwrap();
+
+            let result: Vec<String> = reg
+                .find_iter(rest)
+                .map(|mat| mat.as_str().to_string())
+                .collect();
+
+            let rd = utils::get_reg_number_from_name(&result[0]);
+            let imm = &result[1].parse::<u32>().unwrap();
+
+            // TODO! Fix the bit shifting, off by one somewhere.
+            let final_instruction = (utils::extract_single_bit(*imm, 20) << 30) | (utils::extract_range_bits(*imm, 1, 10) << 20) | (utils::extract_single_bit(*imm, 11) << 19) | (utils::extract_range_bits(*imm, 12, 19) << 12) | (rd << 7) | 0b1101111;
+            decoded_instruction = format!("{:08x}", final_instruction);
         }
 
         None => {

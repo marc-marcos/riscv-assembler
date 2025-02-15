@@ -214,8 +214,7 @@ fn decode_instruction(instruction: &str) -> Option<String> {
             let rd = utils::get_reg_number_from_name(&result[0]);
             let imm = &result[1].parse::<u32>().unwrap();
 
-            // TODO! Fix the bit shifting, off by one somewhere.
-            let final_instruction = (utils::extract_single_bit(*imm, 20) << 30) | (utils::extract_range_bits(*imm, 1, 10) << 20) | (utils::extract_single_bit(*imm, 11) << 19) | (utils::extract_range_bits(*imm, 12, 19) << 12) | (rd << 7) | 0b1101111;
+            let final_instruction = (utils::extract_single_bit(*imm, 20) << 30) | (utils::extract_range_bits(*imm, 1, 10) << 21) | (utils::extract_single_bit(*imm, 11) << 19) | (utils::extract_range_bits(*imm, 12, 19) << 12) | (rd << 7) | 0b1101111;
             decoded_instruction = format!("{:08x}", final_instruction);
         }
 

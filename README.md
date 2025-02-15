@@ -11,10 +11,10 @@
 - [ ] Instruction decoding
     - [X] R Format
     - [X] I Format
-    - [ ] S Format
-    - [ ] B Format
+    - [X] S Format
+    - [X] B Format
     - [ ] J Format
-    - [ ] U Format
+    - [X] U Format
 - [ ] Comments support
 - [ ] Tag support
 - [ ] Using tags as inmediates

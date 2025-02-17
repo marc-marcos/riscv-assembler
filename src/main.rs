@@ -2,7 +2,7 @@ use clap::Parser;
 use std::fs::File;
 use std::io::prelude::*;
 
-mod decoding;
+mod instruction;
 mod utils;
 
 #[derive(Parser)]
@@ -22,7 +22,7 @@ fn main() {
 
     for line in contents.lines() {
         // Decode instruction
-        let encoded_instruction = decoding::decode_instruction(line).unwrap();
+        let encoded_instruction = instruction::decoding::decode_instruction(line).unwrap();
         println!("{}: {}", line, encoded_instruction);
     }
 }

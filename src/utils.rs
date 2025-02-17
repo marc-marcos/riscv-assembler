@@ -1,5 +1,5 @@
 pub fn get_reg_number_from_name(name : &str) -> u32 {
-    let ret = match name {
+    match name {
         "zero" => 0,
         "ra" => 1,
         "sp" => 2,
@@ -33,9 +33,7 @@ pub fn get_reg_number_from_name(name : &str) -> u32 {
         "t5" => 30,
         "t6" => 31,
         _ => 0
-    };
-
-    ret
+    }
 }
 
 pub fn extract_single_bit(value : u32, bit_position : u32) -> u32 {
